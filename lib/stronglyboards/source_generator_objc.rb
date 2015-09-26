@@ -18,17 +18,27 @@ module Stronglyboards
 
       puts "Writing storyboard #{storyboard.name} to #{@header_file} and #{@implementation_file}"
 
-      createInterface(storyboard)
+      createStoryboardClass(storyboard)
 
     end
 
+    # Generate the class for the provided storyboard
     private
-    def createInterface(storyboard)
-      puts <<EOF
-@interface #{storyboard.class_name(@prefix)} : UIStoryboard
+    def createStoryboardClass(storyboard)
+      class_name = storyboard.class_name(@prefix)
+      interface = Array.new(1, "@interface #{class_name} : UIStoryboard")
+      implementation = Array.new(1, "@implementation #{class_name}")
+      interface.push('@end')
+      implementation.push('@end')
 
-@end
-EOF
+      # Convert to string
+      interface = interface.join("\n")
+      implementation = implementation.join("\n")
+
+      puts interface
+      puts '--------'
+      puts implementation
+
     end
 
     # Finalizes processing

@@ -27,6 +27,12 @@ module Stronglyboards
     def createStoryboardClass(storyboard)
       class_name = storyboard.class_name(@prefix)
       interface = Array.new(1, "@interface #{class_name} : UIStoryboard")
+
+      # Provide an overridden declaration of the UIStoryboard -instantiateInitialViewController method
+      if storyboard.initial_view_controller != nil
+        interface.push("- (#{storyboard.initial_view_controller.class_name} *)instantiateInitialViewController;")
+      end
+
       implementation = Array.new(1, "@implementation #{class_name}")
       interface.push('@end')
       implementation.push('@end')

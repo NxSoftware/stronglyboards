@@ -1,9 +1,73 @@
+require_relative 'source_generator'
+
 module Stronglyboards
+  class SourceGeneratorObjC < Stronglyboards::AbstractSourceGenerator
 
-  class SourceGeneratorObjC
-    def doSomething
-      puts 'Objc did something'
+    def initialize(prefix, output_file)
+      @prefix = prefix
+      @header_file = output_file + '.h'
+      @implementation_file = output_file + '.m'
+      @storyboards = Array.new
     end
-  end
 
+    # Generates source code for components of the provided storyboard
+    def process(storyboard)
+
+      # Store this storyboard for further processing later
+      @storyboards.push(storyboard)
+
+      puts "Writing storyboard #{storyboard.name} to #{@header_file} and #{@implementation_file}"
+
+      createInterface(storyboard)
+
+    end
+
+    private
+    def createInterface(storyboard)
+      puts <<EOF
+@interface #{storyboard.class_name(@prefix)} : UIStoryboard
+
+@end
+EOF
+    end
+
+    # Finalizes processing
+    public
+    def finalize
+      createStoryboardCategory
+    end
+
+    # Generate the category for UIStoryboard with methods
+    # for each storyboard that has been provided.
+    private
+    def createStoryboardCategory
+      interface = Array.new(1, '@interface UIStoryboard (Stronglyboards)')
+      implementation = Array.new(1, '@implementation UIStoryboard (Stronglyboards)')
+
+      @storyboards.each do |storyboard|
+        method_signature = "+(#{storyboard.class_name(@prefix)} *)#{storyboard.lowercase_name(@prefix)}Storyboard;"
+        interface.push(method_signature)
+        implementation.push(method_signature + ' {')
+        implementation.push("\t" + createStoryboardInstantiation(storyboard))
+        implementation.push('}')
+      end
+      interface.push('@end')
+      implementation.push('@end')
+
+      # Convert to a string
+      interface = interface.join("\n")
+      implementation = implementation.join("\n")
+
+      puts interface
+      puts '--------'
+      puts implementation
+
+    end
+
+    private
+    def createStoryboardInstantiation(storyboard)
+      "return [#{storyboard.class_name(@prefix)} storyboardWithName:@\"#{storyboard.name}\" bundle:nil];"
+    end
+
+  end
 end

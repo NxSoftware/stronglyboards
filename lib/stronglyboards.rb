@@ -45,17 +45,20 @@ module Stronglyboards
   # Instantiate a source generator appropriate for the selected language
   source_generator = case language
   when :objc
-    Stronglyboards::SourceGeneratorObjC.new
+    Stronglyboards::SourceGeneratorObjC.new(prefix, output_file)
   when :swift
-    Stronglyboards::SourceGeneratorSwift.new
+    Stronglyboards::SourceGeneratorSwift.new(prefix, output_file)
   end
 
   # Iterate the project files looking for storyboards
   project.files.each do |file|
     if file.path.end_with? Stronglyboards::Storyboard::EXTENSION
       storyboard = Stronglyboards::Storyboard.new(file)
-      source_generator.doSomething
+
+      source_generator.process(storyboard)
     end
   end # end project file iterator
+
+  source_generator.finalize()
 
 end

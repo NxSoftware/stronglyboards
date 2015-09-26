@@ -3,6 +3,8 @@ require 'optparse'
 
 require 'stronglyboards/version'
 require 'stronglyboards/storyboard'
+require 'stronglyboards/source_generator_objc'
+require 'stronglyboards/source_generator_swift'
 
 module Stronglyboards
 
@@ -40,10 +42,19 @@ module Stronglyboards
   # Open the existing Xcode project
   project = Xcodeproj::Project.open(project_file)
 
+  # Instantiate a source generator appropriate for the selected language
+  source_generator = case language
+  when :objc
+    Stronglyboards::SourceGeneratorObjC.new
+  when :swift
+    Stronglyboards::SourceGeneratorSwift.new
+  end
+
+  # Iterate the project files looking for storyboards
   project.files.each do |file|
     if file.path.end_with? Stronglyboards::Storyboard::EXTENSION
-      #storyboard = Stronglyboards::Storyboard.new(file)
-      #storyboard.process
+      storyboard = Stronglyboards::Storyboard.new(file)
+      source_generator.doSomething
     end
   end # end project file iterator
 

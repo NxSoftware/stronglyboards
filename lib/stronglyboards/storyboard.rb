@@ -8,6 +8,7 @@ module Stronglyboards
 
     attr_reader :name
     attr_reader :initial_view_controller
+    attr_reader :view_controllers
 
     def initialize(file)
       @file = file

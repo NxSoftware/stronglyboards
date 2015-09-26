@@ -26,14 +26,24 @@ module Stronglyboards
     private
     def createStoryboardClass(storyboard)
       class_name = storyboard.class_name(@prefix)
+
       interface = Array.new(1, "@interface #{class_name} : UIStoryboard")
+      implementation = Array.new(1, "@implementation #{class_name}")
 
       # Provide an overridden declaration of the UIStoryboard -instantiateInitialViewController method
-      if storyboard.initial_view_controller != nil
+      if storyboard.initial_view_controller
         interface.push("- (#{storyboard.initial_view_controller.class_name} *)instantiateInitialViewController;")
       end
 
-      implementation = Array.new(1, "@implementation #{class_name}")
+      # Provide methods for instantiating view controllers by their storyboard ID
+      storyboard.view_controllers.each do |vc|
+        method_signature = "- (#{vc.class_name} *)instantiate#{vc.storyboard_identifier}ViewController;"
+        interface.push(method_signature)
+        implementation.push(method_signature + ' {')
+        implementation.push("\t" + createViewControllerInstantiation(vc))
+        implementation.push('}')
+      end
+
       interface.push('@end')
       implementation.push('@end')
 
@@ -83,6 +93,11 @@ module Stronglyboards
     private
     def createStoryboardInstantiation(storyboard)
       "return [#{storyboard.class_name(@prefix)} storyboardWithName:@\"#{storyboard.name}\" bundle:nil];"
+    end
+
+    private
+    def createViewControllerInstantiation(view_controller)
+      "return [self instantiateViewControllerWithIdentifier:@\"#{view_controller.storyboard_identifier}\"];"
     end
 
   end

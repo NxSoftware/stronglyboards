@@ -2,6 +2,7 @@ module Stronglyboards
   class ViewController
 
     attr_reader :class_name
+    attr_reader :storyboard_identifier
 
     def initialize(xml)
       @class_name = xml.attr('customClass') || class_name_from_type(xml)

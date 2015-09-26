@@ -5,9 +5,11 @@ module Stronglyboards
 
     def initialize(xml)
       @class_name = xml.attr('customClass') || class_name_from_type(xml)
+      @storyboard_identifier = xml.attr('storyboardIdentifier')
 
       puts 'class: '
       puts @class_name
+      puts @storyboard_identifier
     end
 
     # Determines the name of the class from this view controller's type

@@ -38,6 +38,7 @@ module Stronglyboards
       view_controller_classes.each do |class_name|
         @header_file.write("@class #{class_name};\n")
       end
+      @header_file.write("\n")
 
       # Generate classes for each storyboard
       @storyboards.each { |storyboard| createStoryboardClass(storyboard) }
@@ -77,9 +78,11 @@ module Stronglyboards
       interface = interface.join("\n")
       implementation = implementation.join("\n")
 
-      # Output to file
+      # Output to files
       @header_file.write(interface)
+      @header_file.write("\n\n")
       @implementation_file.write(implementation)
+      @implementation_file.write("\n\n")
     end
 
     # Generate the category for UIStoryboard with methods

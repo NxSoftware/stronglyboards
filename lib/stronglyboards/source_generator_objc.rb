@@ -18,6 +18,34 @@ module Stronglyboards
       @storyboards.push(storyboard)
     end
 
+    # Finalizes processing
+    public
+    def finalize
+
+      # Generate framework and header imports
+      @header_file.write("@import UIKit;\n\n")
+      @implementation_file.write("#import \"#{File.basename(@header_file_path)}\"\n\n")
+
+      puts "Header:         #{@header_file_path}"
+      puts "Implementation: #{@implementation_file_path}"
+
+      # Gather a set of view controller classes from all storyboards
+      view_controller_classes = @storyboards.collect { |storyboard|
+        storyboard.view_controllers.collect { |vc| vc.class_name }
+      }.flatten.uniq
+
+      # Generate forward declaration of view controller classes
+      view_controller_classes.each do |class_name|
+        @header_file.write("@class #{class_name};\n")
+      end
+
+      # Generate classes for each storyboard
+      @storyboards.each { |storyboard| createStoryboardClass(storyboard) }
+
+      # Generate the storyboard category
+      createStoryboardCategory
+    end
+
     # Generate the class for the provided storyboard
     private
     def createStoryboardClass(storyboard)
@@ -52,35 +80,6 @@ module Stronglyboards
       # Output to file
       @header_file.write(interface)
       @implementation_file.write(implementation)
-
-    end
-
-    # Finalizes processing
-    public
-    def finalize
-
-      # Generate framework and header imports
-      @header_file.write("@import UIKit;\n\n")
-      @implementation_file.write("#import \"#{File.basename(@header_file_path)}\"\n\n")
-
-      puts "Header:         #{@header_file_path}"
-      puts "Implementation: #{@implementation_file_path}"
-
-      # Gather a set of view controller classes from all storyboards
-      view_controller_classes = @storyboards.collect { |storyboard|
-        storyboard.view_controllers.collect { |vc| vc.class_name }
-      }.flatten.uniq
-
-      # Generate forward declaration of view controller classes
-      view_controller_classes.each do |class_name|
-        @header_file.write("@class #{class_name};\n")
-      end
-
-      # Generate classes for each storyboard
-      @storyboards.each { |storyboard| createStoryboardClass(storyboard) }
-
-      # Generate the storyboard category
-      createStoryboardCategory
     end
 
     # Generate the category for UIStoryboard with methods

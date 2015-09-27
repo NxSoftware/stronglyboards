@@ -1,7 +1,7 @@
 require_relative 'source_generator'
 
 module Stronglyboards
-  class SourceGeneratorObjC < Stronglyboards::AbstractSourceGenerator
+  class SourceGeneratorObjC < AbstractSourceGenerator
 
     def initialize(prefix, output_file)
       @prefix = prefix
@@ -14,7 +14,7 @@ module Stronglyboards
       @storyboards = Array.new
     end
 
-    def process(storyboard)
+    def add_storyboard(storyboard)
       @storyboards.push(storyboard)
     end
 
@@ -45,6 +45,8 @@ module Stronglyboards
 
       # Generate the storyboard category
       createStoryboardCategory
+
+
     end
 
     # Generate the class for the provided storyboard

@@ -35,7 +35,7 @@ module Stronglyboards
       initial_view_controller_identifier = @xml.at_xpath('document').attr('initialViewController')
       view_controller_xml = object_with_identifier(initial_view_controller_identifier) unless !initial_view_controller_identifier
       if view_controller_xml
-        Stronglyboards::ViewController.new(view_controller_xml, true)
+        ViewController.new(view_controller_xml, true)
       end
     end
 
@@ -43,7 +43,7 @@ module Stronglyboards
     private
     def find_view_controllers_with_storyboard_identifiers
       view_controllers = @xml.xpath('//scene/objects/*[@storyboardIdentifier]')
-      view_controllers.collect { |xml| Stronglyboards::ViewController.new(xml) } unless !view_controllers
+      view_controllers.collect { |xml| ViewController.new(xml) } unless !view_controllers
     end
 
     # --------- Helpers ---------
@@ -61,7 +61,7 @@ module Stronglyboards
     def lowercase_name(prefix = nil)
       lower = @name.dup
       lower[0] = lower[0].downcase
-      if prefix == nil
+      if prefix == nil || prefix.length == 0
         lower
       else
         prefix.downcase + '_' + lower

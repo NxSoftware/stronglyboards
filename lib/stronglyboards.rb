@@ -1,6 +1,7 @@
 require 'xcodeproj'
 require 'optparse'
 require 'thor'
+require 'yaml'
 
 require 'stronglyboards/version'
 require 'stronglyboards/storyboard'
@@ -33,7 +34,8 @@ module Stronglyboards
       # Finalise installation
       add_files_to_target(project, target, output_files)
       add_build_script(project)
-      update_lock_file
+      update_lock_file(project_file, options)
+      project.save
     end
 
     desc 'update', 'Updates the generated source code for the project'
@@ -91,7 +93,6 @@ module Stronglyboards
         target.source_build_phase.add_file_reference(file_reference)
       end
 
-      project.save
     end
 
     private
@@ -101,9 +102,13 @@ module Stronglyboards
     end
 
     private
-    def update_lock_file
-      # TODO
-      puts 'Write hidden Stronglyboards.lock file'
+    def update_lock_file(project_file, options)
+      lock_file_path = File.dirname(project_file) + '/Stronglyboards.lock'
+
+      puts "Write hidden #{lock_file_path} file"
+
+      lock_file = File.open(lock_file_path, 'w+')
+      lock_file.write(YAML::dump(options))
     end
 
   end

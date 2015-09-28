@@ -16,6 +16,27 @@ module Stronglyboards
     option :language, :default => 'objc', :desc => 'Output language (objc [default], swift)'
     option :prefix, :default => '', :desc => 'Class and category method prefix'
     def install(project_file)
+      puts 'INSTALLING'
+
+      # Open the existing Xcode project
+      project = Xcodeproj::Project.open(project_file)
+
+      # Do main processing
+      output_files = process(project, options)
+
+      # Finalise installation
+      add_files_to_project(project, output_files)
+      add_build_script(project)
+      update_lock_file
+    end
+
+    desc 'update', 'Updates the generated source code for the project'
+    def update
+      puts 'TODO'
+    end
+
+    private
+    def process(project, options)
       output_file = options[:output]
       language = options[:language]
       prefix = options[:prefix]
@@ -25,23 +46,20 @@ module Stronglyboards
         output_file = prefix + 'Stronglyboards'
       end
 
-      # Open the existing Xcode project
-      project = Xcodeproj::Project.open(project_file)
-
       puts "output: #{output_file}"
       puts "language: #{language}"
       puts "prefix: #{prefix}"
 
       # Instantiate a source generator appropriate for the selected language
       source_generator = case language
-      when 'objc'
-        SourceGeneratorObjC.new(prefix, output_file)
-      when 'swift'
-        SourceGeneratorSwift.new(prefix, output_file)
-      else
-        puts 'Language must be objc or swift.'
-        exit
-      end
+                           when 'objc'
+                             SourceGeneratorObjC.new(prefix, output_file)
+                           when 'swift'
+                             SourceGeneratorSwift.new(prefix, output_file)
+                           else
+                             puts 'Language must be objc or swift.'
+                             exit
+                         end
 
       # Iterate the project files looking for storyboards
       project.files.each do |file|
@@ -53,6 +71,24 @@ module Stronglyboards
       end # end project file iterator
 
       source_generator.finalize()
+    end
+
+    private
+    def add_files_to_project(project, output_files)
+      # TODO
+      puts 'Add files to project'
+    end
+
+    private
+    def add_build_script(project)
+      # TODO
+      puts 'Add build script'
+    end
+
+    private
+    def update_lock_file
+      # TODO
+      puts 'Write hidden Stronglyboards.lock file'
     end
 
   end

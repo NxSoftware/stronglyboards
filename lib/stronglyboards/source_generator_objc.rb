@@ -46,7 +46,7 @@ module Stronglyboards
       # Generate the storyboard category
       createStoryboardCategory
 
-
+      output_files
     end
 
     # Generate the class for the provided storyboard
@@ -113,6 +113,13 @@ module Stronglyboards
       @header_file.write(interface)
       @implementation_file.write(implementation)
 
+    end
+
+    # ---- Helpers ----
+
+    public
+    def output_files
+      [@header_file, @implementation_file]
     end
 
     private

@@ -17,7 +17,7 @@ module Stronglyboards
     option :language, :default => 'objc', :desc => 'Output language (objc [default], swift)'
     option :prefix, :default => '', :desc => 'Class and category method prefix'
     def install(project_file)
-      puts 'INSTALLING'
+      puts "Installing into #{project_file}"
 
       # Open the existing Xcode project
       project = Xcodeproj::Project.open(project_file)
@@ -33,14 +33,15 @@ module Stronglyboards
 
       # Finalise installation
       add_files_to_target(project, target, output_files)
-      add_build_script(project)
+      add_build_script(project, target)
       update_lock_file(project_file, options)
       project.save
     end
 
     desc 'update', 'Updates the generated source code for the project'
     def update
-      puts 'TODO'
+      # TODO
+      puts 'Updating Stronglyboards...'
     end
 
     private
@@ -96,9 +97,13 @@ module Stronglyboards
     end
 
     private
-    def add_build_script(project)
-      # TODO
-      puts 'Add build script'
+    def add_build_script(project, target)
+      puts 'Adding build script'
+
+      phase = project.new(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+      phase.name = 'Update Stronglyboards'
+      phase.shell_script = 'stronglyboards update'
+      target.build_phases.insert(0, phase)
     end
 
     private

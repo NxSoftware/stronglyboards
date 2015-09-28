@@ -21,11 +21,17 @@ module Stronglyboards
       # Open the existing Xcode project
       project = Xcodeproj::Project.open(project_file)
 
+      # TODO: Should expand target support throughout the gem
+      # i.e. some storyboards may be part of the
+      # # project but are only associated with
+      # certain targets (extensions).
+      target = project.native_targets.first
+
       # Do main processing
       output_files = process(project, options)
 
       # Finalise installation
-      add_files_to_project(project, output_files)
+      add_files_to_target(project, target, output_files)
       add_build_script(project)
       update_lock_file
     end
@@ -74,9 +80,18 @@ module Stronglyboards
     end
 
     private
-    def add_files_to_project(project, output_files)
-      # TODO
-      puts 'Add files to project'
+    def add_files_to_target(project, target, output_files)
+      puts "Adding files to target \"#{target}\""
+
+      output_files.each do |file|
+        # Insert the file into the root group in the project
+        file_reference = project.new_file(file)
+
+        # Add the file to the target to ensure it is compiled
+        target.source_build_phase.add_file_reference(file_reference)
+      end
+
+      project.save
     end
 
     private

@@ -12,6 +12,8 @@ module Stronglyboards
 
   class Stronglyboards < Thor
 
+    LOCK_FILE_NAME = 'Stronglyboards.lock'
+
     desc 'install PROJECT', 'Installs Stronglyboards into your .xcodeproj file'
     option :output, :desc => 'Path to the output file'
     option :language, :default => 'objc', :desc => 'Output language (objc [default], swift)'
@@ -39,9 +41,18 @@ module Stronglyboards
     end
 
     desc 'update', 'Updates the generated source code for the project'
-    def update
+    def update(project_name)
       # TODO
       puts 'Updating Stronglyboards...'
+
+      # Load the lock file containing configuration
+      lock_file = File.open(LOCK_FILE_NAME, 'r')
+      options = YAML::load(lock_file)
+
+      # Open the Xcode project
+      project = Xcodeproj::Project.open("#{project_name}.xcodeproj")
+
+      process(project, options)
     end
 
     private
@@ -102,13 +113,13 @@ module Stronglyboards
 
       phase = project.new(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
       phase.name = 'Update Stronglyboards'
-      phase.shell_script = 'stronglyboards update'
+      phase.shell_script = 'stronglyboards update ${PROJECT_NAME}'
       target.build_phases.insert(0, phase)
     end
 
     private
     def update_lock_file(project_file, options)
-      lock_file_path = File.dirname(project_file) + '/Stronglyboards.lock'
+      lock_file_path = File.dirname(project_file) + '/' + LOCK_FILE_NAME
 
       puts "Write hidden #{lock_file_path} file"
 

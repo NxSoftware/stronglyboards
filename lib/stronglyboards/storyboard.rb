@@ -22,7 +22,7 @@ module Stronglyboards
 
       # Find the initial view controller
       initial_view_controller = find_initial_view_controller
-      @view_controllers.push(initial_view_controller) unless !initial_view_controller
+      @view_controllers.push(initial_view_controller) if initial_view_controller
 
       # Find other view controllers
       @view_controllers += find_view_controllers_with_storyboard_identifiers
@@ -31,8 +31,8 @@ module Stronglyboards
     # Searches for the initial view controller
     private
     def find_initial_view_controller
-      initial_view_controller_identifier = @xml.at_xpath('document').attr('initialViewController')
-      view_controller_xml = object_with_identifier(initial_view_controller_identifier) unless !initial_view_controller_identifier
+      initial_vc_identifier = @xml.at_xpath('document').attr('initialViewController')
+      view_controller_xml = object_with_identifier(initial_vc_identifier) if initial_vc_identifier
       if view_controller_xml
         ViewController.new(view_controller_xml, true)
       end
@@ -42,7 +42,7 @@ module Stronglyboards
     private
     def find_view_controllers_with_storyboard_identifiers
       view_controllers = @xml.xpath('//scene/objects/*[@storyboardIdentifier]')
-      view_controllers.collect { |xml| ViewController.new(xml) } unless !view_controllers
+      view_controllers.collect { |xml| ViewController.new(xml) } if view_controllers
     end
 
     # --------- Helpers ---------

@@ -19,6 +19,12 @@ module Stronglyboards
     option :language, :default => 'objc', :desc => 'Output language (objc [default], swift)'
     option :prefix, :default => '', :desc => 'Class and category method prefix'
     def install(project_file)
+      lock_file_path = lock_file_path(project_file)
+      if File.exists?(lock_file_path)
+        puts 'It appears that Stronglyboards has already been installed on this project.'
+        return
+      end
+
       puts "Installing into #{project_file}"
 
       # Open the existing Xcode project
@@ -118,12 +124,16 @@ module Stronglyboards
 
     private
     def update_lock_file(project_file, options)
-      lock_file_path = File.dirname(project_file) + '/' + LOCK_FILE_NAME
-
+      lock_file_path = lock_file_path(project_file)
       puts "Write hidden #{lock_file_path} file"
 
       lock_file = File.open(lock_file_path, 'w+')
       lock_file.write(YAML::dump(options))
+    end
+
+    private
+    def lock_file_path(project_file)
+      File.dirname(project_file) + '/' + LOCK_FILE_NAME
     end
 
   end

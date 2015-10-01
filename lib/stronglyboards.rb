@@ -48,16 +48,20 @@ module Stronglyboards
 
     desc 'update', 'Updates the generated source code for the project'
     def update(project_name)
-      puts 'Updating Stronglyboards...'
+      if !File.exists?(LOCK_FILE_NAME)
+        puts 'Stronglyboards must first be installed using the install command.'
+      else
+        puts 'Updating Stronglyboards...'
 
-      # Load the lock file containing configuration
-      lock_file = File.open(LOCK_FILE_NAME, 'r')
-      options = YAML::load(lock_file)
+        # Load the lock file containing configuration
+        lock_file = File.open(LOCK_FILE_NAME, 'r')
+        options = YAML::load(lock_file)
 
-      # Open the Xcode project
-      project = Xcodeproj::Project.open("#{project_name}.xcodeproj")
+        # Open the Xcode project
+        project = Xcodeproj::Project.open("#{project_name}.xcodeproj")
 
-      process(project, options)
+        process(project, options)
+      end
     end
 
     private

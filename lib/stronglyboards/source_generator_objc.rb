@@ -119,7 +119,7 @@ module Stronglyboards
 
     public
     def output_files
-      [@header_file, @implementation_file]
+      [OutputFile.new(@header_file, false), OutputFile.new(@implementation_file, true)]
     end
 
     private

@@ -42,7 +42,6 @@ module Stronglyboards
 
     desc 'update', 'Updates the generated source code for the project'
     def update(project_name)
-      # TODO
       puts 'Updating Stronglyboards...'
 
       # Load the lock file containing configuration
@@ -97,12 +96,12 @@ module Stronglyboards
     def add_files_to_target(project, target, output_files)
       puts "Adding files to target \"#{target}\""
 
-      output_files.each do |file|
+      output_files.each do |output_file|
         # Insert the file into the root group in the project
-        file_reference = project.new_file(file)
+        file_reference = project.new_file(output_file.file)
 
         # Add the file to the target to ensure it is compiled
-        target.source_build_phase.add_file_reference(file_reference)
+        target.source_build_phase.add_file_reference(file_reference) if output_file.is_source
       end
 
     end

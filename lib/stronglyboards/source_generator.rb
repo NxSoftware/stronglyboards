@@ -1,4 +1,8 @@
 module Stronglyboards
+
+  class OutputFile < Struct.new(:file, :is_source)
+  end
+
   class AbstractSourceGenerator
 
     protected

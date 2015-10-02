@@ -16,12 +16,17 @@ module Stronglyboards
     public
     def parse_storyboards
 
+      puts "Header:         #{@header_file_path}"
+      puts "Implementation: #{@implementation_file_path}"
+
       # Generate framework and header imports
       @header_file.write("@import UIKit;\n\n")
       @implementation_file.write("#import \"#{File.basename(@header_file_path)}\"\n\n")
 
-      puts "Header:         #{@header_file_path}"
-      puts "Implementation: #{@implementation_file_path}"
+      @header_file.write("NS_ASSUME_NONNULL_BEGIN\n\n")
+
+      # Generate the base storyboard class
+      base_class_name = create_base_storyboard_class
 
       # Generate forward declaration of view controller classes
       view_controller_classes.each do |class_name|
@@ -30,21 +35,60 @@ module Stronglyboards
       @header_file.write("\n")
 
       # Generate classes for each storyboard
-      @storyboards.each { |s| create_storyboard_class(s) }
+      @storyboards.each { |s| create_storyboard_class(s, base_class_name) }
 
       # Generate the storyboard category
       create_storyboard_category
 
+      @header_file.write("\n\nNS_ASSUME_NONNULL_END")
+
       output_files
+    end
+
+    private
+    def create_base_storyboard_class
+      class_name = "#{@prefix}Stronglyboard"
+
+      # Create the public interface
+      interface = Array.new
+      interface.push("@interface #{class_name} : NSObject")
+      interface.push('@property (nonatomic, strong, readonly) UIStoryboard *storyboard;')
+      interface.push('@end')
+
+      # Create the private interface to expose the storyboard as a read-write property
+      implementation = Array.new
+      implementation.push("@interface #{class_name} ()")
+      implementation.push('@property (nonatomic, strong) UIStoryboard *storyboard;')
+      implementation.push('@end')
+
+      # Create the implementation of the base storyboard class
+      implementation.push("@implementation #{class_name}")
+      implementation.push('- (instancetype)initWithName:(NSString *)name bundle:(NSBundle *)bundleOrNil {')
+      implementation.push("\tself = [super init];")
+      implementation.push("\tif (self) {")
+      implementation.push("\t\t_storyboard = [UIStoryboard storyboardWithName:name bundle:bundleOrNil];")
+      implementation.push("\t}")
+      implementation.push("\treturn self;")
+      implementation.push('}')
+      implementation.push('@end')
+
+      # Convert to string
+      interface = interface.join("\n")
+      implementation = implementation.join("\n")
+
+      @header_file.write(interface + "\n\n")
+      @implementation_file.write(implementation + "\n\n")
+
+      class_name
     end
 
     # Generate the class for the provided storyboard
     private
-    def create_storyboard_class(storyboard)
+    def create_storyboard_class(storyboard, base_class_name)
       class_name = storyboard.class_name(@prefix)
       puts "Processing storyboard class #{class_name}."
 
-      interface = Array.new(1, "@interface #{class_name} : UIStoryboard")
+      interface = Array.new(1, "@interface #{class_name} : #{base_class_name}")
       implementation = Array.new(1, "@implementation #{class_name}")
 
       storyboard.view_controllers.each do |vc|
@@ -114,17 +158,17 @@ module Stronglyboards
     private
     def create_storyboard_instantiation(storyboard)
       class_name = storyboard.class_name(@prefix)
-      "return (#{class_name} *)[#{class_name} storyboardWithName:@\"#{storyboard.name}\" bundle:nil];"
+      "return [[#{class_name} alloc] initWithName:@\"#{storyboard.name}\" bundle:nil];"
     end
 
     private
     def create_initial_view_controller_instantiation(view_controller)
-      "return (#{view_controller.class_name} *)[super instantiateInitialViewController];"
+      "return (#{view_controller.class_name} *)[self.storyboard instantiateInitialViewController];"
     end
 
     private
     def create_view_controller_instantiation(view_controller)
-      "return [self instantiateViewControllerWithIdentifier:@\"#{view_controller.storyboard_identifier}\"];"
+      "return [self.storyboard instantiateViewControllerWithIdentifier:@\"#{view_controller.storyboard_identifier}\"];"
     end
 
   end

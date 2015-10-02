@@ -107,7 +107,7 @@ module Stronglyboards
           source_generator.add_storyboard(storyboard)
         end # end project file iterator
 
-        output_files = source_generator.finalize()
+        output_files = source_generator.parse_storyboards
 
         # Add the output files to the target
         add_files_to_target(project, target, output_files)

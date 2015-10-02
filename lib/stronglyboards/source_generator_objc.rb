@@ -3,24 +3,18 @@ require_relative 'source_generator'
 module Stronglyboards
   class SourceGeneratorObjC < AbstractSourceGenerator
 
-    def initialize(prefix, output_file)
-      @prefix = prefix
+    def initialize(prefix, output_file_name)
+      super(prefix)
 
-      @header_file_path = output_file + '.h'
-      @implementation_file_path = output_file + '.m'
+      @header_file_path = output_file_name + '.h'
+      @implementation_file_path = output_file_name + '.m'
       @header_file = File.open(@header_file_path, 'w+')
       @implementation_file = File.open(@implementation_file_path, 'w+')
-
-      @storyboards = Array.new
     end
 
-    def add_storyboard(storyboard)
-      @storyboards.push(storyboard)
-    end
-
-    # Finalizes processing
+    # Parses the storyboards
     public
-    def finalize
+    def parse_storyboards
 
       # Generate framework and header imports
       @header_file.write("@import UIKit;\n\n")

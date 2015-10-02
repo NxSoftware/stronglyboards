@@ -79,15 +79,7 @@ module Stronglyboards
         output_file += "_#{target.name}"
 
         # Instantiate a source generator appropriate for the selected language
-        source_generator = case language
-                             when 'objc'
-                               SourceGeneratorObjC.new(prefix, output_file)
-                             when 'swift'
-                               SourceGeneratorSwift.new(prefix, output_file)
-                             else
-                               puts 'Language must be objc or swift.'
-                               exit
-                           end
+        source_generator = source_generator(language, prefix, output_file)
 
         # Iterate the target's resource files looking for storyboards
         target.resources_build_phase.files.each do |build_file|
@@ -159,6 +151,19 @@ module Stronglyboards
     private
     def lock_file_path(project_file)
       File.dirname(project_file) + '/' + LOCK_FILE_NAME
+    end
+
+    private
+    def source_generator(language, prefix, output_file)
+      case language
+         when 'objc'
+           SourceGeneratorObjC.new(prefix, output_file)
+         when 'swift'
+           SourceGeneratorSwift.new(prefix, output_file)
+         else
+           puts 'Language must be objc or swift.'
+           exit
+       end
     end
 
   end

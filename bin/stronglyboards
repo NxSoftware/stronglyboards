@@ -1,3 +1,5 @@
 #!/usr/bin/env ruby
 
 require 'stronglyboards'
+
+Stronglyboards::Stronglyboards.start(ARGV)

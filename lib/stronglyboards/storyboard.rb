@@ -10,8 +10,6 @@ module Stronglyboards
     attr_reader :view_controllers
 
     def initialize(full_path)
-      puts "Full path: #{full_path}"
-
       @name = File.basename(full_path, EXTENSION)
 
       file = File.open(full_path)

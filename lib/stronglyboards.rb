@@ -163,6 +163,4 @@ module Stronglyboards
 
   end
 
-  Stronglyboards.start(ARGV)
-
 end

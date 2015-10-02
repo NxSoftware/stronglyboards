@@ -48,13 +48,13 @@ module Stronglyboards
     end
 
     desc 'update', 'Updates the generated source code for the project'
-    def update(project_name)
+    def update(project_file)
       configuration = load_lock_file
 
-      puts 'Updating Stronglyboards...'
+      puts "Updating Stronglyboards in #{project_file}"
 
       # Open the Xcode project
-      project = Xcodeproj::Project.open("#{project_name}.xcodeproj")
+      project = Xcodeproj::Project.open(project_file)
 
       process(project, configuration)
     end
@@ -225,7 +225,7 @@ module Stronglyboards
 
       phase = project.new(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
       phase.name = BUILD_SCRIPT_NAME
-      phase.shell_script = 'stronglyboards update ${PROJECT_NAME}'
+      phase.shell_script = 'stronglyboards update ${PROJECT_NAME}.xcodeproj'
       target.build_phases.insert(0, phase)
     end
 

@@ -4,6 +4,10 @@ module Stronglyboards
     attr_reader :class_name
     attr_reader :storyboard_identifier
 
+    UIVIEWCONTROLLER = 'UIViewController'
+    UITABLEVIEWCONTROLLER = 'UITableViewController'
+    UINAVIGATIONCONTROLLER = 'UINavigationController'
+
     def initialize(xml, is_initial_view_controller = false)
       @class_name = xml.attr('customClass') || class_name_from_type(xml)
       @storyboard_identifier = xml.attr('storyboardIdentifier')
@@ -19,11 +23,11 @@ module Stronglyboards
     def class_name_from_type(xml)
       case xml.name
         when 'viewController'
-          'UIViewController'
+          UIVIEWCONTROLLER
         when 'tableViewController'
-          'UITableViewController'
+          UITABLEVIEWCONTROLLER
         when 'navigationController'
-          'UINavigationController'
+          UINAVIGATIONCONTROLLER
           # TODO: Add more built-in classes
       end
     end

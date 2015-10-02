@@ -9,9 +9,19 @@ module Stronglyboards
     attr_accessor :prefix
 
     public
-    def initialize(prefix)
+    def initialize(prefix, output_file_name)
       @prefix = prefix
       @storyboards = Array.new
+
+      @implementation_file = File.open(output_file_name, 'w+')
+    end
+
+    # Gathers a set of view controller classes from all storyboards
+    protected
+    def view_controller_classes
+      @storyboards.collect { |storyboard|
+        storyboard.view_controllers.collect { |vc| vc.class_name }
+      }.flatten.uniq
     end
 
     public
@@ -26,7 +36,7 @@ module Stronglyboards
 
     public
     def output_files
-      raise 'This method should be overridden.'
+      [OutputFile.new(@implementation_file, true)]
     end
 
   end

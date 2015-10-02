@@ -4,12 +4,12 @@ module Stronglyboards
   class SourceGeneratorObjC < AbstractSourceGenerator
 
     def initialize(prefix, output_file_name)
-      super(prefix)
+      @implementation_file_path = output_file_name + '.m'
+
+      super(prefix, @implementation_file_path)
 
       @header_file_path = output_file_name + '.h'
-      @implementation_file_path = output_file_name + '.m'
       @header_file = File.open(@header_file_path, 'w+')
-      @implementation_file = File.open(@implementation_file_path, 'w+')
     end
 
     # Parses the storyboards
@@ -23,11 +23,6 @@ module Stronglyboards
       puts "Header:         #{@header_file_path}"
       puts "Implementation: #{@implementation_file_path}"
 
-      # Gather a set of view controller classes from all storyboards
-      view_controller_classes = @storyboards.collect { |storyboard|
-        storyboard.view_controllers.collect { |vc| vc.class_name }
-      }.flatten.uniq
-
       # Generate forward declaration of view controller classes
       view_controller_classes.each do |class_name|
         @header_file.write("@class #{class_name};\n")
@@ -35,17 +30,17 @@ module Stronglyboards
       @header_file.write("\n")
 
       # Generate classes for each storyboard
-      @storyboards.each { |storyboard| createStoryboardClass(storyboard) }
+      @storyboards.each { |s| create_storyboard_class(s) }
 
       # Generate the storyboard category
-      createStoryboardCategory
+      create_storyboard_category
 
       output_files
     end
 
     # Generate the class for the provided storyboard
     private
-    def createStoryboardClass(storyboard)
+    def create_storyboard_class(storyboard)
       class_name = storyboard.class_name(@prefix)
       puts "Processing storyboard class #{class_name}."
 
@@ -55,10 +50,10 @@ module Stronglyboards
       storyboard.view_controllers.each do |vc|
         if vc.initial_view_controller?
           method_signature = "- (#{vc.class_name} *)instantiateInitialViewController;"
-          method_body = createInitialViewControllerInstantiation(vc)
+          method_body = create_initial_view_controller_instantiation(vc)
         else
           method_signature = "- (#{vc.class_name} *)instantiate#{vc.storyboard_identifier}ViewController;"
-          method_body = createViewControllerInstantiation(vc)
+          method_body = create_view_controller_instantiation(vc)
         end
 
         interface.push(method_signature)
@@ -84,7 +79,7 @@ module Stronglyboards
     # Generate the category for UIStoryboard with methods
     # for each storyboard that has been provided.
     private
-    def createStoryboardCategory
+    def create_storyboard_category
       interface = Array.new(1, '@interface UIStoryboard (Stronglyboards)')
       implementation = Array.new(1, '@implementation UIStoryboard (Stronglyboards)')
 
@@ -92,7 +87,7 @@ module Stronglyboards
         method_signature = "+(#{storyboard.class_name(@prefix)} *)#{storyboard.lowercase_name(@prefix)}Storyboard;"
         interface.push(method_signature)
         implementation.push(method_signature + ' {')
-        implementation.push("\t" + createStoryboardInstantiation(storyboard))
+        implementation.push("\t" + create_storyboard_instantiation(storyboard))
         implementation.push('}')
       end
       interface.push('@end')
@@ -113,22 +108,22 @@ module Stronglyboards
 
     public
     def output_files
-      [OutputFile.new(@header_file, false), OutputFile.new(@implementation_file, true)]
+      super.push OutputFile.new(@header_file, false)
     end
 
     private
-    def createStoryboardInstantiation(storyboard)
+    def create_storyboard_instantiation(storyboard)
       class_name = storyboard.class_name(@prefix)
       "return (#{class_name} *)[#{class_name} storyboardWithName:@\"#{storyboard.name}\" bundle:nil];"
     end
 
     private
-    def createInitialViewControllerInstantiation(view_controller)
+    def create_initial_view_controller_instantiation(view_controller)
       "return (#{view_controller.class_name} *)[super instantiateInitialViewController];"
     end
 
     private
-    def createViewControllerInstantiation(view_controller)
+    def create_view_controller_instantiation(view_controller)
       "return [self instantiateViewControllerWithIdentifier:@\"#{view_controller.storyboard_identifier}\"];"
     end
 

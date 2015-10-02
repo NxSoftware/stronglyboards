@@ -9,12 +9,12 @@ module Stronglyboards
     attr_reader :name
     attr_reader :view_controllers
 
-    def initialize(file)
-      @file = file
-      @full_path = Xcodeproj::Project::Object::GroupableHelper.real_path(file)
-      @name = File.basename(file.path, EXTENSION)
+    def initialize(full_path)
+      puts "Full path: #{full_path}"
 
-      file = File.open(@full_path)
+      @name = File.basename(full_path, EXTENSION)
+
+      file = File.open(full_path)
       @xml = Nokogiri::XML(file)
       file.close
 

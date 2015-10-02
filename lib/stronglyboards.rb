@@ -37,11 +37,9 @@ module Stronglyboards
       target = project.native_targets.first
 
       # Do main processing
-      output_files = process(project, options)
+      process(project, options)
 
       # Finalise installation
-      add_files_to_target(project, target, output_files)
-      add_build_script(project, target)
       update_lock_file(project_file, options)
       project.save
     end
@@ -70,36 +68,59 @@ module Stronglyboards
       language = options[:language]
       prefix = options[:prefix]
 
-      # Provide a default output filename
-      if output_file == nil
-        output_file = prefix + 'Stronglyboards'
-      end
+      project.native_targets
+          .select { |target| target.product_type == 'com.apple.product-type.application' }
+          .each do |target|
 
-      puts "output: #{output_file}"
-      puts "language: #{language}"
-      puts "prefix: #{prefix}"
+        # Provide a default output filename
+        if output_file == nil
+          output_file = prefix + 'Stronglyboards'
+        end
+        output_file += "_#{target.name}"
 
-      # Instantiate a source generator appropriate for the selected language
-      source_generator = case language
-                           when 'objc'
-                             SourceGeneratorObjC.new(prefix, output_file)
-                           when 'swift'
-                             SourceGeneratorSwift.new(prefix, output_file)
-                           else
-                             puts 'Language must be objc or swift.'
-                             exit
-                         end
+        # Instantiate a source generator appropriate for the selected language
+        source_generator = case language
+                             when 'objc'
+                               SourceGeneratorObjC.new(prefix, output_file)
+                             when 'swift'
+                               SourceGeneratorSwift.new(prefix, output_file)
+                             else
+                               puts 'Language must be objc or swift.'
+                               exit
+                           end
 
-      # Iterate the project files looking for storyboards
-      project.files.each do |file|
-        if file.path.end_with? Storyboard::EXTENSION
-          storyboard = Storyboard.new(file)
+        # Iterate the target's resource files looking for storyboards
+        target.resources_build_phase.files.each do |build_file|
+          next unless build_file.display_name.end_with? Storyboard::EXTENSION
+
+          file_or_group = build_file.file_ref
+
+          if file_or_group.is_a? Xcodeproj::Project::Object::PBXFileReference
+            # Getting the real path is sufficient for non-localized storyboards
+            # as it will return the absolute path to the .storyboard
+            path = file_or_group.real_path
+          elsif file_or_group.is_a? Xcodeproj::Project::Object::PBXVariantGroup
+            # Localized storyboards will be a group and will
+            # need the path constructing from the Base storyboard.
+            base_storyboard_file = file_or_group.children.find { |f| f.name == 'Base' }
+            if base_storyboard_file == nil
+              puts "No Base storyboard found for #{file_or_group}!!!"
+              next
+            end
+            path = base_storyboard_file.real_path
+          end
+
+          storyboard = Storyboard.new(path)
 
           source_generator.add_storyboard(storyboard)
-        end
-      end # end project file iterator
+        end # end project file iterator
 
-      source_generator.finalize()
+        output_files = source_generator.finalize()
+
+        # Add the output files to the target
+        add_files_to_target(project, target, output_files)
+        add_build_script(project, target)
+      end
     end
 
     private

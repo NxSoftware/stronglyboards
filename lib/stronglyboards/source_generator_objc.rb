@@ -168,7 +168,7 @@ module Stronglyboards
 
     private
     def create_view_controller_instantiation(view_controller)
-      "return [self.storyboard instantiateViewControllerWithIdentifier:@\"#{view_controller.storyboard_identifier}\"];"
+      "return (#{view_controller.class_name} *)[self.storyboard instantiateViewControllerWithIdentifier:@\"#{view_controller.storyboard_identifier}\"];"
     end
 
   end

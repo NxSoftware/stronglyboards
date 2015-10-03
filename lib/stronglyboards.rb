@@ -219,7 +219,7 @@ module Stronglyboards
 
       phase = project.new(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
       phase.name = BUILD_SCRIPT_NAME
-      phase.shell_script = 'stronglyboards update ${PROJECT_NAME}.xcodeproj'
+      phase.shell_script = 'stronglyboards update ${PROJECT_NAME}'
       target.build_phases.insert(0, phase)
     end
 

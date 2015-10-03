@@ -4,6 +4,7 @@ require 'thor'
 require 'yaml'
 
 require_relative 'stronglyboards/version'
+require_relative 'stronglyboards/lock_file'
 require_relative 'stronglyboards/storyboard'
 require_relative 'stronglyboards/source_generator_objc'
 require_relative 'stronglyboards/source_generator_swift'
@@ -12,7 +13,6 @@ module Stronglyboards
 
   class Stronglyboards < Thor
 
-    LOCK_FILE_NAME = 'Stronglyboards.lock'
     BUILD_SCRIPT_NAME = 'Update Stronglyboards'
 
     # ---- Begin external interface ----
@@ -22,10 +22,10 @@ module Stronglyboards
     option :language, :default => 'objc', :desc => 'Output language (objc [default], swift)'
     option :prefix, :default => '', :desc => 'Class and category method prefix'
     def install(project_file)
-      lock_file_path = lock_file_path(project_file)
-      if File.exists?(lock_file_path)
+      lock_file = LockFile.new(project_file)
+      if lock_file.exists?
         puts 'It appears that Stronglyboards has already been installed on this project.'
-        return
+        exit
       end
 
       puts "Installing Stronglyboards into #{project_file}"
@@ -33,23 +33,17 @@ module Stronglyboards
       # Open the existing Xcode project
       project = Xcodeproj::Project.open(project_file)
 
-      # TODO: Should expand target support throughout the gem
-      # i.e. some storyboards may be part of the
-      # # project but are only associated with
-      # certain targets (extensions).
-      target = project.native_targets.first
-
       # Do main processing
       process(project, options)
 
       # Finalise installation
-      update_lock_file(project_file, options)
+      lock_file.update(options)
       project.save
     end
 
     desc 'update', 'Updates the generated source code for the project'
     def update(project_file)
-      configuration = load_lock_file
+      configuration = require_lock_file(project_file).contents
 
       puts "Updating Stronglyboards in #{project_file}"
 
@@ -61,7 +55,8 @@ module Stronglyboards
 
     desc 'uninstall PROJECT', 'Uninstalls Stronglyboards from the specified .xcodeproj file.'
     def uninstall(project_file)
-      configuration = load_lock_file
+      lock_file = require_lock_file(project_file)
+      configuration = lock_file.contents
 
       base_output_file = configuration[:output]
       language = configuration[:language]
@@ -138,8 +133,7 @@ module Stronglyboards
       project.save
 
       # Finally delete the lock file
-      File.delete(LOCK_FILE_NAME)
-
+      lock_file.delete
     end
 
     # ---- End external interface ----
@@ -230,32 +224,6 @@ module Stronglyboards
     end
 
     private
-    def update_lock_file(project_file, options)
-      lock_file_path = lock_file_path(project_file)
-      puts "Write hidden #{lock_file_path} file"
-
-      lock_file = File.open(lock_file_path, 'w+')
-      lock_file.write(YAML::dump(options))
-    end
-
-    private
-    def lock_file_path(project_file)
-      File.dirname(project_file) + '/' + LOCK_FILE_NAME
-    end
-
-    private
-    def load_lock_file
-      if !File.exists?(LOCK_FILE_NAME)
-        puts 'Stronglyboards must first be installed using the install command.'
-        exit
-      else
-        # Load the lock file containing configuration
-        lock_file = File.open(LOCK_FILE_NAME, 'r')
-        YAML::load(lock_file)
-      end
-    end
-
-    private
     def source_generator(language, prefix, output_file)
       case language
          when 'objc'
@@ -266,6 +234,16 @@ module Stronglyboards
            puts 'Language must be objc or swift.'
            exit
        end
+    end
+
+    private
+    def require_lock_file(project_file)
+      lock_file = LockFile.new(project_file)
+      unless lock_file.exists?
+        puts 'Stronglyboards must first be installed using the install command.'
+        exit
+      end
+      lock_file
     end
 
   end

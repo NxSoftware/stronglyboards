@@ -7,6 +7,10 @@ module Stronglyboards
     UIVIEWCONTROLLER = 'UIViewController'
     UITABLEVIEWCONTROLLER = 'UITableViewController'
     UINAVIGATIONCONTROLLER = 'UINavigationController'
+    UITABBARCONTROLLER = 'UITabBarController'
+    UICOLLECTIONVIEWCONTROLLER = 'UICollectionViewController'
+    UISPLITVIEWCONTROLLER = 'UISplitViewController'
+    UIPAGEVIEWCONTROLLER = 'UIPageViewController'
 
     def initialize(xml, is_initial_view_controller = false)
       @class_name = xml.attr('customClass') || class_name_from_type(xml)
@@ -28,7 +32,14 @@ module Stronglyboards
           UITABLEVIEWCONTROLLER
         when 'navigationController'
           UINAVIGATIONCONTROLLER
-          # TODO: Add more built-in classes
+        when 'tabBarController'
+          UITABBARCONTROLLER
+        when 'collectionViewController'
+          UICOLLECTIONVIEWCONTROLLER
+        when 'splitViewController'
+          UISPLITVIEWCONTROLLER
+        when 'pageViewController'
+          UIPAGEVIEWCONTROLLER
       end
     end
 

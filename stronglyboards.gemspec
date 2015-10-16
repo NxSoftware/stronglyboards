@@ -6,7 +6,7 @@ require 'stronglyboards/version'
 Gem::Specification.new do |spec|
   spec.name        = 'stronglyboards'
   spec.version     = Stronglyboards::VERSION
-  spec.date        = '2015-09-24'
+  spec.date        = '2015-10-16'
 
   spec.summary     = 'A strongly-typed interface for your storyboards, view controllers, and segues.'
   spec.description = 'Generates a strongly-typed interface for your storyboards, view controllers, and segues.'
@@ -21,6 +21,9 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
+  spec.required_ruby_version = '>= 2.0.0'
+
+  spec.add_runtime_dependency 'xcodeproj', '>= 0.28.2'
   spec.add_runtime_dependency 'nokogiri', '>= 1.6.6.2'
   spec.add_runtime_dependency 'thor', '>= 0.19.1'
 
